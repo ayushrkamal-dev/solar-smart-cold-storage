@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexus Flow | NER Smart Cold Storage & Alert System</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Ambient Glow -->
+  <div class="ambient-glow"></div>
+
+  <!-- Top Navigation & Language Selector -->
+  <nav class="navbar">
+    <div class="brand">
+      <img src="nexus-logo.jpg" alt="Nexus Flow Logo" class="brand-logo" />
+      <span>NEXUS FLOW</span>
+    </div>
+
+    <div class="nav-controls">
+      <!-- Multilingual Regional Switcher (NER-Specific) -->
+      <div class="lang-selector-wrapper">
+        <i data-lucide="globe" class="lang-icon"></i>
+        <select id="lang-select" onchange="changeLanguage(this.value)">
+          <option value="en">English (Default)</option>
+          <option value="as">Assam — অসমীয়া / বাংলা</option>
+          <option value="mn">Manipur — Meitei (মৈতৈলোন্)</option>
+          <option value="tr">Tripura — Kokborok / বাংলা</option>
+          <option value="mz">Mizoram — Mizo ṭawng</option>
+          <option value="ml">Meghalaya — Ka Ktien Khasi</option>
+          <option value="sk">Sikkim — नेपाली (Nepali)</option>
+          <option value="nl">Nagaland — Nagamese</option>
+          <option value="ap">Arunachal Pradesh — Nyishi</option>
+        </select>
+      </div>
+
+      <div class="nav-status">
+        <span class="pulse-dot"></span>
+        <span id="txt-telemetry">Mesh Telemetry Active</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Live System Alert Banner -->
+  <section class="alert-banner-section">
+    <div id="alert-banner" class="alert-banner status-normal">
+      <div class="alert-content">
+        <i data-lucide="shield-check" id="alert-icon" class="alert-badge-icon"></i>
+        <div>
+          <h4 id="alert-title">SYSTEM STATUS: OPTIMAL</h4>
+          <p id="alert-desc">All parameters within safe preservation threshold for horticultural produce.</p>
+        </div>
+      </div>
+      <div class="alert-actions">
+        <button class="btn-test" onclick="simulateAlert('temp')">Test Over-Temp</button>
+        <button class="btn-test" onclick="simulateAlert('power')">Test Low Power</button>
+        <button class="btn-reset" onclick="simulateAlert('normal')">Reset System</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hero Section -->
+  <header class="hero-layout">
+    <div class="hero-content">
+      <div class="badge">
+        <i data-lucide="map-pin"></i> <span id="txt-region-badge">North Eastern Region (NER) Deployment</span>
+      </div>
+      <h1 id="txt-hero-title">Solar-Powered Smart Mini Cold Storage</h1>
+      <p id="txt-hero-desc">
+        Solid-state 12V thermoelectric Peltier cooling with real-time microclimate regulation, 
+        PCM thermal buffering, and offline-first LoRa edge telemetry.
+      </p>
+    </div>
+    
+    <div class="hero-logo-wrapper">
+      <div class="logo-ambient-ring"></div>
+      <img src="nexus-logo.jpg" alt="Nexus Flow Emblem" class="hero-centerpiece-logo" />
+    </div>
+  </header>
+
+  <!-- Key Metrics Grid -->
+  <main class="dashboard-grid">
+    <div class="card stat-card" id="card-temp">
+      <div class="card-icon cyan"><i data-lucide="thermometer"></i></div>
+      <div class="card-info">
+        <span class="label" id="lbl-temp">Chamber Temp</span>
+        <span class="value"><strong id="val-temp">4.0</strong> <small>°C</small></span>
+      </div>
+    </div>
+
+    <div class="card stat-card" id="card-hum">
+      <div class="card-icon cyan"><i data-lucide="droplets"></i></div>
+      <div class="card-info">
+        <span class="label" id="lbl-hum">Relative Humidity</span>
+        <span class="value"><strong id="val-hum">88</strong> <small>% RH</small></span>
+      </div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="card-icon amber"><i data-lucide="wind"></i></div>
+      <div class="card-info">
+        <span class="label" id="lbl-co2">CO₂ Respiration</span>
+        <span class="value"><strong id="val-co2">615</strong> <small>ppm</small></span>
+      </div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="card-icon amber"><i data-lucide="activity"></i></div>
+      <div class="card-info">
+        <span class="label" id="lbl-ethylene">Ethylene Index</span>
+        <span class="value"><strong id="val-ethylene">16</strong> <small>ppm</small></span>
+      </div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="card-icon cyan"><i data-lucide="zap"></i></div>
+      <div class="card-info">
+        <span class="label" id="lbl-peltier">Peltier Draw</span>
+        <span class="value"><strong id="val-current">5.4</strong> <small>A (64.8W)</small></span>
+      </div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="card-icon emerald"><i data-lucide="sun"></i></div>
+      <div class="card-info">
+        <span class="label" id="lbl-solar">Solar PV Input</span>
+        <span class="value"><strong id="val-solar">182</strong> <small>W</small></span>
+      </div>
+    </div>
+
+    <div class="card stat-card" id="card-battery">
+      <div class="card-icon emerald"><i data-lucide="battery"></i></div>
+      <div class="card-info">
+        <span class="label" id="lbl-battery">LiFePO₄ SoC</span>
+        <span class="value"><strong id="val-battery">84</strong> <small>%</small></span>
+      </div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="card-icon emerald"><i data-lucide="door-closed" id="icon-door"></i></div>
+      <div class="card-info">
+        <span class="label" id="lbl-door">Chamber Seal</span>
+        <span class="value" id="val-door">Closed</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- NEW FEATURE: Interactive Crop Lifespan & Preservation Forecaster -->
+  <section class="crop-section">
+    <div class="card crop-card">
+      <div class="crop-header">
+        <div class="crop-header-left">
+          <i data-lucide="sprout" class="text-emerald"></i>
+          <div>
+            <h3 id="txt-crop-title">Crop Lifespan & Spoilage Forecaster</h3>
+            <p id="txt-crop-desc">Calculates remaining shelf-life based on real-time microclimate sensors.</p>
+          </div>
+        </div>
+        <!-- Crop Picker -->
+        <div class="crop-selector-box">
+          <label for="crop-select" id="lbl-select-crop">Select Stored Crop:</label>
+          <select id="crop-select" onchange="updateCropLifespan()">
+            <option value="chilli">Bhut Jolokia / King Chilli (ভোট জলকীয়া)</option>
+            <option value="ginger">Fresh Ginger / Rhizomes (আদা)</option>
+            <option value="tomato">Ripe Tomatoes (বিলাহী)</option>
+            <option value="cabbage">Cabbage & Leafy Greens (কবি / শাক)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Lifespan Gauge & Prediction Stats -->
+      <div class="crop-body-grid">
+        <div class="lifespan-metric">
+          <span class="lifespan-label" id="lbl-est-lifespan">Projected Safe Lifespan</span>
+          <div class="lifespan-value">
+            <strong id="val-crop-days">24</strong> <span id="txt-crop-unit">Days Remaining</span>
+          </div>
+          <div class="lifespan-progress-bar">
+            <div id="lifespan-bar-fill" class="progress-fill" style="width: 82%;"></div>
+          </div>
+        </div>
+
+        <div class="crop-details">
+          <div class="detail-row">
+            <span class="detail-title" id="lbl-opt-range">Optimal Envelope:</span>
+            <span class="detail-val" id="val-opt-range">7°C – 10°C | 85% – 90% RH</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-title" id="lbl-curr-impact">Current Impact:</span>
+            <span class="detail-val text-emerald" id="val-curr-impact">Optimal Preservation (Rate: 1.0x)</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-title" id="lbl-spoilage-risk">Spoilage Hazard:</span>
+            <span class="detail-val text-amber" id="val-spoilage-risk">Low (Chilling injury safe)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Diagnostics Row -->
+  <section class="details-section">
+    <div class="card banner-card">
+      <div class="banner-header">
+        <i data-lucide="cpu" class="text-gold"></i>
+        <h3 id="txt-ai-title">Edge AI Spoilage & Downtime Forecaster</h3>
+      </div>
+      <p class="banner-text" id="txt-ai-desc">
+        Current thermal retention trajectory projects <strong>14 hrs 30 mins</strong> of passive autonomy via Phase Change Material (PCM) buffer in the event of zero solar insolation.
+      </p>
+      <div class="tags">
+        <span class="tag">Direct DC 12V</span>
+        <span class="tag">Solid-State Thermoelectric</span>
+        <span class="tag">LoRaWAN Mesh Sync</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>Smart India Hackathon 2026 Prototype — Team Nexus Flow</p>
+  </footer>
+
+  <!-- Multilingual Dictionary & Simulation Engine -->
+  <script>
+    lucide.createIcons();
+
+    // Crop Database (Storage Envelope, Base Shelf Life, Vulnerabilities)
+    const CROPS = {
+      chilli: {
+        name: "Bhut Jolokia / King Chilli",
+        minT: 7, maxT: 10, minH: 85, maxH: 90,
+        baseDays: 28,
+        hazardChilling: "Chilling Injury (<5°C leads to surface pitting)",
+        hazardRot: "Fungal Rot & Mold (High humidity pooling)",
+        hazardHeat: "Rapid softening & moisture loss (>12°C)"
+      },
+      ginger: {
+        name: "Fresh Ginger (Rhizomes)",
+        minT: 12, maxT: 14, minH: 85, maxH: 90,
+        baseDays: 120,
+        hazardChilling: "Low temperature rotting (<10°C)",
+        hazardRot: "Sprouting / Rhizome mold",
+        hazardHeat: "Dehydration & shriveling (>16°C)"
+      },
+      tomato: {
+        name: "Ripe Tomatoes",
+        minT: 8, maxT: 12, minH: 85, maxH: 90,
+        baseDays: 18,
+        hazardChilling: "Failure to ripen & soft water-soaked spots",
+        hazardRot: "Ethylene cross-ripening & stem rot",
+        hazardHeat: "Over-ripening & skin splitting"
+      },
+      cabbage: {
+        name: "Cabbage & Mustard Greens",
+        minT: 1, maxT: 4, minH: 90, maxH: 95,
+        baseDays: 35,
+        hazardChilling: "Freezing damage (<0°C)",
+        hazardRot: "Bacterial soft rot",
+        hazardHeat: "Wilting, yellowing & leaf loss (>6°C)"
+      }
+    };
+
+    const TRANSLATIONS = {
+      en: {
+        telemetry: "Mesh Telemetry Active",
+        region: "North Eastern Region (NER) Deployment",
+        title: "Solar-Powered Smart Mini Cold Storage",
+        desc: "Solid-state 12V thermoelectric Peltier cooling with real-time microclimate regulation, PCM thermal buffering, and offline-first LoRa edge telemetry.",
+        temp: "Chamber Temp",
+        hum: "Relative Humidity",
+        co2: "CO₂ Respiration",
+        ethylene: "Ethylene Index",
+        peltier: "Peltier Draw",
+        solar: "Solar PV Input",
+        battery: "LiFePO₄ SoC",
+        door: "Chamber Seal",
+        doorClosed: "Closed",
+        doorOpen: "Open (Warning)",
+        cropTitle: "Crop Lifespan & Spoilage Forecaster",
+        cropDesc: "Calculates remaining shelf-life based on real-time microclimate sensors.",
+        selectCrop: "Select Stored Crop:",
+        estLifespan: "Projected Safe Lifespan",
+        daysRemaining: "Days Remaining",
+        optRange: "Optimal Envelope:",
+        currImpact: "Current Impact:",
+        spoilageRisk: "Spoilage Hazard:",
+        aiTitle: "Edge AI Spoilage & Downtime Forecaster",
+        aiDesc: "Current thermal retention trajectory projects <strong>14 hrs 30 mins</strong> of passive autonomy via Phase Change Material (PCM) buffer.",
+        statusNormalTitle: "SYSTEM STATUS: OPTIMAL",
+        statusNormalDesc: "All parameters within safe preservation threshold for horticultural produce.",
+        statusTempTitle: "ALERT: TEMPERATURE EXCURSION",
+        statusTempDesc: "Internal chamber temperature elevated! Activating secondary Peltier cooling boost.",
+        statusPowerTitle: "ALERT: SOLAR INSUFFICIENT / LOW BATTERY",
+        statusPowerDesc: "PV wattage depleted. Switching to Phase Change Material (PCM) passive cooling mode."
+      },
+      as: { // Assam (Bengali / Assamese)
+        telemetry: "জাল টেলিমেট্ৰি সক্ৰিয় (Mesh Active)",
+        region: "উত্তৰ-পূব অঞ্চল (NER) প্ৰকল্প",
+        title: "সৌৰশক্তি চালিত স্মাৰ্ট মিনি কোল্ড ষ্টোৰেজ",
+        desc: "১২V পেল্টিয়াৰ কুলিং প্ৰণালী, স্বয়ংক্ৰিয় উষ্ণতা নিয়ন্ত্ৰণ আৰু অফলাইন নিৰীক্ষণ ব্যৱস্থা।",
+        temp: "ভঁৰালৰ উষ্ণতা",
+        hum: "আপেক্ষিক আৰ্দ্ৰতা",
+        co2: "CO₂ নিৰ্গমন",
+        ethylene: "ইথিলিন গেছ মাত্ৰা",
+        peltier: "পেল্টিয়াৰ শক্তি খৰচ",
+        solar: "সৌৰ শক্তি ইনপুট",
+        battery: "বেটাৰী স্থিতি",
+        door: "ভঁৰালৰ দুৱাৰ",
+        doorClosed: "বন্ধ আছে",
+        doorOpen: "খোলা আছে (সতৰ্কতা)",
+        cropTitle: "শস্যৰ আয়ু আৰু পচন পূৰ্বাভাস",
+        cropDesc: "উষ্ণতা আৰু আৰ্দ্ৰতাৰ আধাৰত শাক-পাচলি কিমান দিন ভালে থাকিব গণনা কৰা হয়।",
+        selectCrop: "সংৰক্ষিত শস্য বাছক:",
+        estLifespan: "সম্ভাব্য সুৰক্ষিত আয়ুসকাল",
+        daysRemaining: "দিন বাকী আছে",
+        optRange: "অনুকূল পৰিসৰ:",
+        currImpact: "বৰ্তমান প্ৰভাৱ:",
+        spoilageRisk: "পচন আশংকা:",
+        aiTitle: "AI পচন আৰু স্থিতি পূৰ্বাভাস",
+        aiDesc: "ৰ'দ নথকা অৱস্থাতো PCM থাৰ্মেল বেটাৰীৰ জৰিয়তে <strong>১৪ ঘণ্টা ৩০ মিনিট</strong> খাদ্য সুৰক্ষিত থাকিব।",
+        statusNormalTitle: "ব্যৱস্থা স্থিতি: অনুকূল (নিৰাপদ)",
+        statusNormalDesc: "সকলো শাক-পাচলি সংৰক্ষণৰ বাবে উষ্ণতা আৰু আৰ্দ্ৰতা সঠিক আছে।",
+        statusTempTitle: "সতৰ্কবাণী: উষ্ণতা বৃদ্ধি পাইছে!",
+        statusTempDesc: "ভঁৰালৰ উষ্ণতা বাঢ়িছে! স্বয়ংক্ৰিয়ভাৱে অতিৰিক্ত কুলিং অন কৰা হৈছে।",
+        statusPowerTitle: "সতৰ্কবাণী: বেটাৰী আৰু সৌৰশক্তি কম!",
+        statusPowerDesc: "বিদ্যুৎ সংৰক্ষণ ম'ড অন কৰা হৈছে। PCM থাণ্ডা সংৰক্ষণ ব্যৱস্থা ব্যৱহাৰ হৈছে।"
+      },
+      mn: { // Manipur (Meitei)
+        telemetry: "মেস তেলিমিত্রি চৎথরি (Active)",
+        region: "অৱাং নোংপোক লমদম (NER) ইনিসিএতিভ",
+        title: "সোলোরনা চত্থবা স্মার্ত কোল্দ স্তোরেজ",
+        desc: "১২V পেলতিয়র কুলিং, ওতোমেতিক তেম্পরেচর অমসুং হ্যুমোদিতী কন্ত্রোল সিস্তেম।",
+        temp: "চেম্বর্ তেম্পরেচর",
+        hum: "হ্যুমোদিতী (ঈশিং ঈশৈ)",
+        co2: "CO₂ রেস্পিরেসন",
+        ethylene: "ইথিলিন গ্যাস লেভেল",
+        peltier: "পেলতিয়র পৱার দ্রো",
+        solar: "সোলোর ইনপুত পৱার",
+        battery: "বেত্তরী চার্জ লেভেল",
+        door: "থোংগী ফিভম",
+        doorClosed: "থিংজিনখ্রে",
+        doorOpen: "হাংদোক্লে (চেকশিনবা)",
+        cropTitle: "পোত্থোক্কী পুন্সি অমসুং মাঙদবা প্রেদিক্সন",
+        cropDesc: "চেম্বর্গী ফিভম য়েংলগা পোত্থোকশিং নুমিৎ কয়ানি কন্নবা তৌই।",
+        selectCrop: "পোত্থোক খনবীয়ু:",
+        estLifespan: "কন্নবা নুমিৎকী চাং",
+        daysRemaining: "নুমিৎ লেমহৌরি",
+        optRange: "চুম্বা ফিভম:",
+        currImpact: "হৌজিক্কী ফিভম:",
+        spoilageRisk: "মাঙনবগী রিস্ক:",
+        aiTitle: "AI ৱার্নিং অমসুং শেল্ফ-লাইফ প্রেদিক্সন",
+        aiDesc: "নুমিৎ থোকতবদা PCM থর্মল মেতরিএলনা মরম ওইদুনা <strong>পুং ১৪ তরামঙা</strong> চেকশিন্না লৈগনি।",
+        statusNormalTitle: "সিস্তেম ফিভম: অফবা (নোর্মেformat)",
+        statusNormalDesc: "পোত্থোকশিং পুম্নমক কন্নবা তেম্পরেচর অমসুং হ্যুমোদিতী চুম্না লৈরি।",
+        statusTempTitle: "চেকশিনৱা: তেম্পরেচর ৱাংখৎলে!",
+        statusTempDesc: "চেম্বর্ মনুং অশা খাৎলে! পেলতিয়র সেকেন্দরী কুলিং থবক তৌবা হৌরে।",
+        statusPowerTitle: "চেকশিনৱা: সোলোর অমসুং বেত্তরী হন্থরে!",
+        statusPowerDesc: "পৱার সেভিং মোদ চনখ্রে। PCM পেসিব কুলিং সিস্তেম হৌদোক্লে।"
+      },
+      tr: { // Tripura (Kokborok / Bengali)
+        telemetry: "Mesh Telemetry Kwlangbai (Active)",
+        region: "North Eastern Region (NER) Phai",
+        title: "Solar Smart Mini Cold Storage Unit",
+        desc: "12V Peltier kotor buphang, samung tangnani borom tei offline dashboard.",
+        temp: "Kotor bisingni Temperature",
+        hum: "Twi bwchang (Humidity)",
+        co2: "CO₂ Bwchang",
+        ethylene: "Ethylene Gas",
+        peltier: "Peltier Power",
+        solar: "Solar Power",
+        battery: "Battery Bwchang",
+        door: "Hokolo Khabay",
+        doorClosed: "Khapjak",
+        doorOpen: "Khurjak (Khumkhor)",
+        cropTitle: "Samung Mangbwla Naithok (Lifespan)",
+        cropDesc: "Temperature tei humidity naitugwi thlai kahaukhe tongna sal hisab.",
+        selectCrop: "Thlai Chukhuru:",
+        estLifespan: "Tongna Sal:",
+        daysRemaining: "Sal Tongkho",
+        optRange: "Kahau Temperature:",
+        currImpact: "Tabuni Impact:",
+        spoilageRisk: "Kotor Maangba:",
+        aiTitle: "AI Samung Mangbwla Naithok",
+        aiDesc: "Sal kwrwi phano PCM buffer tei <strong>14 ghanta 30 minute</strong> kotor thangkha.",
+        statusNormalTitle: "SYSTEM STATUS: KAHAU",
+        statusNormalDesc: "Twima buphang ganao kahaukhe tongkho.",
+        statusTempTitle: "ALERT: TEMPERATURE KWALANGKHA",
+        statusTempDesc: "Kotor bisingni temperature kwbangkha! Cooling chukha.",
+        statusPowerTitle: "ALERT: BATTERY KWRWIKHA",
+        statusPowerDesc: "Solar kwrwikha. PCM mode chukha."
+      },
+      mz: { // Mizoram (Mizo)
+        telemetry: "Mesh Telemetry a nung e (Active)",
+        region: "North East Region (NER) tan bik",
+        title: "Ni Zung Chakna Hmang Cold Storage",
+        desc: "12V Peltier vawhhona, boruak vawt vawn himna leh battery hmanga kal pui a ni.",
+        temp: "Chhung Lum/Vawh Lam",
+        hum: "Boruak Hnawn Lam",
+        co2: "CO₂ Hip Chhuah",
+        ethylene: "Ethylene Gas San Lam",
+        peltier: "Peltier Chakna Hman",
+        solar: "Ni Zung Chakna Lut",
+        battery: "Battery San Lam",
+        door: "Storage Kawngkhar",
+        doorClosed: "Khar a ni",
+        doorOpen: "Hawng a ni (Fimkhur)",
+        cropTitle: "Thlai Dam Chhung & Chhiat Hun Tur",
+        cropDesc: "Boruak vawh lam leh hnawn lam atanga thlai vawn that theih zat chhut chhuahna.",
+        selectCrop: "Thlai Dah Thlan:",
+        estLifespan: "Vawn That Theih Chhung",
+        daysRemaining: "Ni A La Him",
+        optRange: "Boruak Vawt Tawk:",
+        currImpact: "Boruak Awmdan:",
+        spoilageRisk: "Chhiat Theihna:",
+        aiTitle: "AI Thlai Chhiat Tur Venna",
+        aiDesc: "Ni a chhuah loh pawhin PCM vawhna hmangin <strong>darkar 14 leh min 30</strong> a vawt reng thei ang.",
+        statusNormalTitle: "DINHMUN: A THA HLAWT TLING",
+        statusNormalDesc: "Thlai vawn thatna tura tehfung zawng zawng a him e.",
+        statusTempTitle: "FIMKHURNA: A VAWT TAWK LO / A LUM",
+        statusTempDesc: "Storage chhung a lum thut! Peltier cooling chak zawka tihnun a ni.",
+        statusPowerTitle: "FIMKHURNA: NI ZUNG / BATTERY A TLEM",
+        statusPowerDesc: "Solar a thawk tlem. PCM passive mode hman nghal a ni."
+      },
+      ml: { // Meghalaya (Khasi)
+        telemetry: "Mesh Telemetry Ka Trei Kam (Active)",
+        region: "North Eastern Region (NER) Project",
+        title: "Ka Mini Cold Storage Ba Trei Da Ka Sngi",
+        desc: "12V Peltier cooling ba pynrkhiang bad pynkhriat ia ki jhur bad jingthung jingtep.",
+        temp: "Jingkhriat Ka Kamra",
+        hum: "Ka Jinglong Sngem (Humidity)",
+        co2: "Ka CO₂ Ba Mih",
+        ethylene: "Ethylene Gas",
+        peltier: "Ka Bor Peltier",
+        solar: "Ka Bor Sngi (Solar)",
+        battery: "Ka Bor Battery",
+        door: "Ka Jingkhang Storage",
+        doorClosed: "Khad",
+        doorOpen: "Plied (Maham)",
+        cropTitle: "Ka Jingpeit Bniah Ia Ka Jingneh Ki Jhur",
+        cropDesc: "Khein katno sngi ki jhur kin neh katkum ka jingkhriat bad sngem.",
+        selectCrop: "Jied Ia Ka Jhur:",
+        estLifespan: "Jingneh Ba La Khein",
+        daysRemaining: "Sngi Ba Dang Sah",
+        optRange: "Jingkhriat Ba Biang:",
+        currImpact: "Jinglong Mynta:",
+        spoilageRisk: "Jingmaham Ba Pyut:",
+        aiTitle: "AI Jingpeit Bniah Ia Ka Jingpyut",
+        aiDesc: "Lada ym don sngi ruh, ka PCM buffer kan pynkhriat sah haduh <strong>14 kynta 30 minit</strong>.",
+        statusNormalTitle: "JINGLONG KA SYSTEM: BIANG LUT",
+        statusNormalDesc: "Ki jingthung bad jhur ki don ha ka jingkhriat kaba biang bha.",
+        statusTempTitle: "JINGMAHAM: KA JINGKHRIAT KA LA KIEW!",
+        statusTempDesc: "Ka kamra ka la kham shit! La pynkiew ia ka bor pynkhriat.",
+        statusPowerTitle: "JINGMAHAM: KA BOR BATTERY KA LA HIAR",
+        statusPowerDesc: "Ym biang ka sngi. La pynkylla sha ka PCM passive cooling mode."
+      },
+      sk: { // Sikkim (Nepali)
+        telemetry: "मेस टेलिमेट्री सक्रिय छ (Active)",
+        region: "पूर्वोत्तर क्षेत्र (NER) परियोजना",
+        title: "सौर्य ऊर्जाबाट चल्ने स्मार्ट कोल्ड स्टोर",
+        desc: "१२ भोल्ट पेल्टियर कुलिंग, स्वचालित तापमान नियन्त्रण र अफलाइन निगरानी प्रणाली।",
+        temp: "भण्डारण तापमान",
+        hum: "आर्द्रता (Humidity)",
+        co2: "CO₂ स्तर",
+        ethylene: "इथिलिन ग्यास",
+        peltier: "पेल्टियर पावर",
+        solar: "सौर्य ऊर्जा इनपुट",
+        battery: "ब्याट्री चार्ज स्तर",
+        door: "ढोकाको स्थिति",
+        doorClosed: "बन्द छ",
+        doorOpen: "खुला छ (चेतावनी)",
+        cropTitle: "बालीको आयु तथा सड्ने जोखिम पूर्वानुमान",
+        cropDesc: "वास्तविक तापमान र आर्द्रताको आधारमा तरकारीको आयु गणना गर्दछ।",
+        selectCrop: "बाली छान्नुहोस्:",
+        estLifespan: "अनुमानित सुरक्षित आयु",
+        daysRemaining: "दिन बाँकी छ",
+        optRange: "उत्कृष्ट दायरा:",
+        currImpact: "वर्तमान प्रभाव:",
+        spoilageRisk: "सड्ने जोखिम:",
+        aiTitle: "AI फसल सुरक्षा र चेतावनी",
+        aiDesc: "घाम नलाग्दा पनि PCM थर्मल ब्याट्रीले <strong>१४ घण्टा ३० मिनेट</strong> सम्म तरकारी ताजा राख्नेछ।",
+        statusNormalTitle: "प्रणाली स्थिति: सामान्य र सुरक्षित",
+        statusNormalDesc: "सबै तरकारी तथा फलफूल सुरक्षित तापक्रममा छन्।",
+        statusTempTitle: "चेतावनी: तापक्रम बढ्यो!",
+        statusTempDesc: "भित्रको तापक्रम बढ्यो! तुरुन्त थप कुलिंग सक्रिय गरिएको छ।",
+        statusPowerTitle: "चेतावनी: ब्याट्री र सौर्य ऊर्जा कम भयो!",
+        statusPowerDesc: "सौर्य ऊर्जा न्यून छ। PCM थर्मल ब्याकअप मोड सुरु गरियो।"
+      },
+      nl: { // Nagaland (Nagamese)
+        telemetry: "Mesh Telemetry Chalu Ase (Active)",
+        region: "North Eastern Region (NER) Project",
+        title: "Solar Para Chola Mini Cold Storage",
+        desc: "12V Peltier cooling system, automatic temperature aru battery monitoring.",
+        temp: "Bithor laga Temperature",
+        hum: "Bithor laga Humidity",
+        co2: "CO₂ Level",
+        ethylene: "Ethylene Gas",
+        peltier: "Peltier Power Kharcha",
+        solar: "Solar Power",
+        battery: "Battery Level",
+        door: "Storage Duwar",
+        doorClosed: "Bondho Ase",
+        doorOpen: "Khula Ase (Hushiyar)",
+        cropTitle: "Sabji Laga Lifespan Aru Spoilage Warning",
+        cropDesc: "Temperature aru humidity hisap te sabji ketiya kharab hobo janibo.",
+        selectCrop: "Sabji Select Koriye:",
+        estLifespan: "Safe Din Laga Hisab",
+        daysRemaining: "Din Baki Ase",
+        optRange: "Bhal Temperature:",
+        currImpact: "Etiya Laga Condition:",
+        spoilageRisk: "Kharab Hobo Laga Risk:",
+        aiTitle: "AI Spoilage Warning System",
+        aiDesc: "Roud nathakile bhi PCM thanda plate para <strong>14 ghanta 30 minute</strong> sabji bhal thakibo.",
+        statusNormalTitle: "SYSTEM STATUS: BHAL ASE (OPTIMAL)",
+        statusNormalDesc: "Sob sabji khan bhal temperature te ase.",
+        statusTempTitle: "WARNING: GOROM HOI JAISE!",
+        statusTempDesc: "Chamber bithor gorom hoise! Extra cooling on kora hoise.",
+        statusPowerTitle: "WARNING: BATTERY ARU ROUD KOM ASE!",
+        statusPowerDesc: "Power komti ase. PCM battery backup mode te switch kora hoise."
+      },
+      ap: { // Arunachal Pradesh (Nyishi)
+        telemetry: "Mesh Telemetry Dola Dunga (Active)",
+        region: "North Eastern Region (NER) Mission",
+        title: "Danyi (Solar) Mini Cold Storage System",
+        desc: "12V Peltier jora nam microclimate cooling and battery sensor unit.",
+        temp: "Chamber Temperature",
+        hum: "Chamber Hwwnam (Humidity)",
+        co2: "CO₂ Gas Level",
+        ethylene: "Ethylene Level",
+        peltier: "Peltier Power",
+        solar: "Danyi (Solar) Power",
+        battery: "Battery Level",
+        door: "Nyodang (Door)",
+        doorClosed: "Chikhapbe (Closed)",
+        doorOpen: "Wlapbe (Open Warning)",
+        cropTitle: "Oor-soh Longte Aru Nyikhe Forecaster",
+        cropDesc: "Temperature aru hwwnam naithok gwi sabji keni heying pa taye.",
+        selectCrop: "Oor-soh (Crop) Khano:",
+        estLifespan: "Heying pa Din:",
+        daysRemaining: "Din Lemhoka (Remaining)",
+        optRange: "Alabe Range:",
+        currImpact: "Hoolo Condition:",
+        spoilageRisk: "Kharab Hobo Risk:",
+        aiTitle: "AI Nyikhe Hoolo Warning",
+        aiDesc: "Danyi mayilo pacha PCM plate num <strong>14 hrs 30 mins</strong> heying pa taye.",
+        statusNormalTitle: "SYSTEM STATUS: DOLU DUGUMBE (SAFE)",
+        statusNormalDesc: "Oor-soh alape heying pa dunga.",
+        statusTempTitle: "WARNING: TEMPERATURE GUBA KUDUNG!",
+        statusTempDesc: "Chamber gu-ba kudung! Cooling heying pa chuka dung.",
+        statusPowerTitle: "WARNING: POWER KOMTI DUNG!",
+        statusPowerDesc: "Danyi watt ma dung. PCM passive mode switch ka dung."
+      }
+    };
+
+    let currentLang = 'en';
+    let currentAlertState = 'normal';
+
+    function changeLanguage(lang) {
+      currentLang = lang;
+      const dict = TRANSLATIONS[lang] || TRANSLATIONS.en;
+
+      document.getElementById('txt-telemetry').innerText = dict.telemetry;
+      document.getElementById('txt-region-badge').innerText = dict.region;
+      document.getElementById('txt-hero-title').innerText = dict.title;
+      document.getElementById('txt-hero-desc').innerText = dict.desc;
+      document.getElementById('lbl-temp').innerText = dict.temp;
+      document.getElementById('lbl-hum').innerText = dict.hum;
+      document.getElementById('lbl-co2').innerText = dict.co2;
+      document.getElementById('lbl-ethylene').innerText = dict.ethylene;
+      document.getElementById('lbl-peltier').innerText = dict.peltier;
+      document.getElementById('lbl-solar').innerText = dict.solar;
+      document.getElementById('lbl-battery').innerText = dict.battery;
+      document.getElementById('lbl-door').innerText = dict.door;
+      
+      // Crop Lifespan section text
+      document.getElementById('txt-crop-title').innerText = dict.cropTitle;
+      document.getElementById('txt-crop-desc').innerText = dict.cropDesc;
+      document.getElementById('lbl-select-crop').innerText = dict.selectCrop;
+      document.getElementById('lbl-est-lifespan').innerText = dict.estLifespan;
+      document.getElementById('txt-crop-unit').innerText = dict.daysRemaining;
+      document.getElementById('lbl-opt-range').innerText = dict.optRange;
+      document.getElementById('lbl-curr-impact').innerText = dict.currImpact;
+      document.getElementById('lbl-spoilage-risk').innerText = dict.spoilageRisk;
+
+      document.getElementById('txt-ai-title').innerText = dict.aiTitle;
+      document.getElementById('txt-ai-desc').innerHTML = dict.aiDesc;
+
+      updateAlertText();
+      updateCropLifespan();
+    }
+
+    // Dynamic Shelf-Life Calculation Algorithm
+    function updateCropLifespan() {
+      const selectedKey = document.getElementById('crop-select').value;
+      const crop = CROPS[selectedKey];
+      const currentTemp = parseFloat(document.getElementById('val-temp').innerText);
+      const currentHum = parseFloat(document.getElementById('val-hum').innerText);
+
+      document.getElementById('val-opt-range').innerText = `${crop.minT}°C – ${crop.maxT}°C | ${crop.minH}% – ${crop.maxH}% RH`;
+
+      let degradationFactor = 1.0;
+      let hazardText = "None (Chamber optimal)";
+      let impactText = "Optimal Preservation (Degradation: 1.0x)";
+      let fillPercent = 85;
+
+      // Temperature Sensitivity Curve
+      if (currentTemp < crop.minT) {
+        degradationFactor = 1.6;
+        hazardText = crop.hazardChilling;
+        impactText = "Chilling Vulnerability Detected";
+        fillPercent = 45;
+      } else if (currentTemp > crop.maxT) {
+        const delta = currentTemp - crop.maxT;
+        degradationFactor = 1.0 + (delta * 0.35);
+        hazardText = crop.hazardHeat;
+        impactText = `Accelerated Decay (Factor: ${degradationFactor.toFixed(1)}x)`;
+        fillPercent = Math.max(15, 80 - (delta * 12));
+      }
+
+      // Humidity Sensitivity Penalty
+      if (currentHum < crop.minH) {
+        degradationFactor += 0.2;
+        hazardText += " + Moisture weight loss";
+      } else if (currentHum > crop.maxH) {
+        hazardText = crop.hazardRot;
+      }
+
+      const calculatedDays = Math.max(1, Math.round(crop.baseDays / degradationFactor));
+      document.getElementById('val-crop-days').innerText = calculatedDays;
+      document.getElementById('val-spoilage-risk').innerText = hazardText;
+      document.getElementById('val-curr-impact').innerText = impactText;
+      document.getElementById('lifespan-bar-fill').style.width = fillPercent + "%";
+
+      if (fillPercent < 40) {
+        document.getElementById('lifespan-bar-fill').style.background = "var(--crimson)";
+      } else if (fillPercent < 70) {
+        document.getElementById('lifespan-bar-fill').style.background = "var(--amber)";
+      } else {
+        document.getElementById('lifespan-bar-fill').style.background = "var(--emerald)";
+      }
+    }
+
+    function simulateAlert(type) {
+      currentAlertState = type;
+      const banner = document.getElementById('alert-banner');
+      const tempCard = document.getElementById('card-temp');
+      const battCard = document.getElementById('card-battery');
+
+      banner.className = 'alert-banner';
+      tempCard.classList.remove('card-alert');
+      battCard.classList.remove('card-alert');
+
+      if (type === 'temp') {
+        banner.classList.add('status-critical');
+        tempCard.classList.add('card-alert');
+        document.getElementById('val-temp').innerText = "13.4";
+      } else if (type === 'power') {
+        banner.classList.add('status-warning');
+        battCard.classList.add('card-alert');
+        document.getElementById('val-solar').innerText = "14";
+        document.getElementById('val-battery').innerText = "18";
+      } else {
+        banner.classList.add('status-normal');
+        document.getElementById('val-temp').innerText = "4.0";
+        document.getElementById('val-solar').innerText = "182";
+        document.getElementById('val-battery').innerText = "84";
+      }
+
+      updateAlertText();
+      updateCropLifespan();
+      lucide.createIcons();
+    }
+
+    function updateAlertText() {
+      const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+      const title = document.getElementById('alert-title');
+      const desc = document.getElementById('alert-desc');
+      const icon = document.getElementById('alert-icon');
+
+      if (currentAlertState === 'temp') {
+        title.innerText = dict.statusTempTitle;
+        desc.innerText = dict.statusTempDesc;
+        icon.setAttribute('data-lucide', 'alert-triangle');
+      } else if (currentAlertState === 'power') {
+        title.innerText = dict.statusPowerTitle;
+        desc.innerText = dict.statusPowerDesc;
+        icon.setAttribute('data-lucide', 'battery-warning');
+      } else {
+        title.innerText = dict.statusNormalTitle;
+        desc.innerText = dict.statusNormalDesc;
+        icon.setAttribute('data-lucide', 'shield-check');
+      }
+      lucide.createIcons();
+    }
+
+    // Live sensor drift
+    setInterval(() => {
+      if (currentAlertState === 'normal') {
+        document.getElementById('val-temp').innerText = (3.9 + (Math.random() - 0.5) * 0.3).toFixed(1);
+        document.getElementById('val-hum').innerText = Math.round(88 + (Math.random() - 0.5) * 2);
+        document.getElementById('val-co2').innerText = Math.round(615 + (Math.random() - 0.5) * 15);
+        document.getElementById('val-ethylene').innerText = Math.round(16 + (Math.random() - 0.5) * 2);
+        document.getElementById('val-solar').innerText = Math.round(182 + (Math.random() - 0.5) * 12);
+        document.getElementById('val-battery').innerText = Math.round(84 + (Math.random() - 0.5) * 1);
+        updateCropLifespan();
+      }
+    }, 2500);
+
+    // Initial calculation on load
+    updateCropLifespan();
+  </script>
+</body>
+</html>
